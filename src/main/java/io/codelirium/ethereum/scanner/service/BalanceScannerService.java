@@ -50,7 +50,7 @@ public class BalanceScannerService {
 	@PreDestroy
 	private void printLastKey() {
 
-		LOGGER.debug("Last key tried: 0x" + getFormatted(currentPrivateKeyBI.toString(16), 64));
+		LOGGER.debug("Last key tried: " + getFormatted(currentPrivateKeyBI.toString(16), 64));
 
 		LOGGER.debug("Total number of addresses scanned: " + totalScanned.toString());
 
