@@ -62,6 +62,7 @@ public class BalanceScannerService {
 		notNull(startPrivateKey, "The start private key cannot be null.");
 		notNull(endPrivateKey, "The end private key cannot be null.");
 
+
 		final BigInteger startPrivateKeyBI = new BigInteger(startPrivateKey, 16);
 
 		final BigInteger endPrivateKeyBI = new BigInteger(endPrivateKey, 16);
@@ -79,7 +80,7 @@ public class BalanceScannerService {
 
 			if (balance.compareTo(ZERO) > 0) {
 
-				LOGGER.debug("Address: " + publicAddress + " - Key: " + getFormatted(currentPrivateKeyBI.toString(16), 64) + " - Balance: " + balance);
+				LOGGER.debug("Address: " + publicAddress + " - Key: " + getFormatted(currentPrivateKeyBI.toString(16), 64) + " - Balance: " + balance + " wei.");
 
 			}
 
@@ -89,6 +90,7 @@ public class BalanceScannerService {
 			totalScanned = totalScanned.add(ONE);
 		}
 
+
 		return;
 	}
 
@@ -96,6 +98,7 @@ public class BalanceScannerService {
 	private static String getPublicAddress(final String privateKey) {
 
 		notNull(privateKey, "The private key cannot be null.");
+
 
 		return create(privateKey).getAddress();
 	}
@@ -114,6 +117,7 @@ public class BalanceScannerService {
 
 		return ethGetBalance.getBalance();
 	}
+
 
 	private static String getFormatted(final String input, final int length) {
 
