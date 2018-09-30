@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false" scan="false">
+
+	<!-- Log Appenders -->
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<Target>System.out</Target>
+		<encoder>
+			<pattern>%d{"yyyy-MM-dd HH:mm:ss,SSS"} %-5level [%X{UID}] %c{1}:%L - %m%n</pattern>
+		</encoder>
+	</appender>
+
+	<!-- Package and Class Loggers -->
+	<logger name="io.codelirium.ethereum.scanner" additivity="false" level="DEBUG">
+		<appender-ref ref="STDOUT"/>
+	</logger>
+
+	<!-- Active Appender -->
+	<root level="WARN">
+		<appender-ref ref="STDOUT"/>
+	</root>
+
+</configuration>
