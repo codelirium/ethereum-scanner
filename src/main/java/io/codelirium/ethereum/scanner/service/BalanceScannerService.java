@@ -79,7 +79,7 @@ public class BalanceScannerService {
 
 			if (balance.compareTo(ZERO) > 0) {
 
-					LOGGER.debug("Address: " + publicAddress + " - Key: " + getFormatted(currentPrivateKeyBI.toString(16), 64) + " - Balance: " + balance);
+				LOGGER.debug("Address: " + publicAddress + " - Key: " + getFormatted(currentPrivateKeyBI.toString(16), 64) + " - Balance: " + balance);
 
 			}
 
