@@ -1,6 +1,6 @@
 package io.codelirium.ethereum.scanner;
 
-import io.codelirium.ethereum.scanner.service.BalanceScannerService;
+import io.codelirium.ethereum.scanner.service.SequentialBalanceScannerService;
 import org.slf4j.Logger;
 import org.springframework.boot.Banner;
 import org.springframework.boot.CommandLineRunner;
@@ -21,7 +21,7 @@ public class BalanceScannerApplication implements CommandLineRunner {
 
 
 	@Inject
-	private BalanceScannerService balanceScannerService;
+	private SequentialBalanceScannerService sequentialBalanceScannerService;
 
 
 	public static void main(final String[] args) {
@@ -78,7 +78,7 @@ public class BalanceScannerApplication implements CommandLineRunner {
 
 			LOGGER.debug("Scanning balances within the range [" + startPrivateKey + "] -> [" + endPrivateKey + "] ...");
 
-			balanceScannerService.scan(start, end);
+			sequentialBalanceScannerService.scan(start, end);
 
 
 			return;
