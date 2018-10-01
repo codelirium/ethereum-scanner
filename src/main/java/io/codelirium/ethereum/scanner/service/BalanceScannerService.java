@@ -1,14 +1,11 @@
 package io.codelirium.ethereum.scanner.service;
 
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
-import org.web3j.protocol.http.HttpService;
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.inject.Inject;
 import java.math.BigInteger;
 import java.util.concurrent.ExecutionException;
 
@@ -17,7 +14,7 @@ import static java.math.BigInteger.ZERO;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.util.Assert.notNull;
 import static org.web3j.crypto.Credentials.create;
-import static org.web3j.protocol.Web3j.build;
+import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 
 
 @Service
@@ -26,25 +23,12 @@ public class BalanceScannerService {
 	private static final Logger LOGGER = getLogger(BalanceScannerService.class);
 
 
-	@Value("${ethereum.node}")
-	private String ethereumNode;
-
+	@Inject
 	private Web3j web3;
 
 	private BigInteger currentPrivateKeyBI;
 
 	private BigInteger totalScanned = ZERO;
-
-
-	public BalanceScannerService() { }
-
-
-	@PostConstruct
-	private void init() {
-
-		web3 = build(new HttpService(ethereumNode));
-
-	}
 
 
 	@PreDestroy
@@ -110,7 +94,7 @@ public class BalanceScannerService {
 
 
 		final EthGetBalance ethGetBalance = web3
-				.ethGetBalance(address, DefaultBlockParameterName.LATEST)
+				.ethGetBalance(address, LATEST)
 				.sendAsync()
 				.get();
 
