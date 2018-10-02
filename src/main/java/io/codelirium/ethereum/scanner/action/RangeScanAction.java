@@ -1,15 +1,21 @@
 package io.codelirium.ethereum.scanner.action;
 
+import io.codelirium.ethereum.scanner.BalanceScannerApplication;
 import io.codelirium.ethereum.scanner.service.SequentialBalanceScannerService;
+import org.slf4j.Logger;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.RecursiveAction;
 
 import static java.math.BigInteger.valueOf;
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 public class RangeScanAction extends RecursiveAction {
+
+	private static final Logger LOGGER = getLogger(BalanceScannerApplication.class);
+
 
 	private String start;
 
@@ -43,6 +49,8 @@ public class RangeScanAction extends RecursiveAction {
 
 
 		if (length.compareTo(valueOf(batchSize)) < 0) {
+
+			//LOGGER.debug("Scanning balances within the range [" + getAddressFormatted(start, 64) + "] -> [" + getAddressFormatted(end, 64) + "] ...");
 
 			sequentialBalanceScannerService.scan(start, end);
 
