@@ -19,17 +19,9 @@ public final class AtomicBigInteger {
 	}
 
 
-
 	public BigInteger get() {
 
 		return valueHolder.get();
-
-	}
-
-
-	public void set(final BigInteger bigInteger) {
-
-		valueHolder.set(bigInteger);
 
 	}
 

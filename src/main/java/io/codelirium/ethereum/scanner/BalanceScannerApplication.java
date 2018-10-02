@@ -1,17 +1,21 @@
 package io.codelirium.ethereum.scanner;
 
+import io.codelirium.ethereum.scanner.action.RangeScanAction;
 import io.codelirium.ethereum.scanner.service.SequentialBalanceScannerService;
 import org.slf4j.Logger;
-import org.springframework.boot.Banner;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import javax.inject.Inject;
 import java.math.BigInteger;
 
+import static io.codelirium.ethereum.scanner.util.EthereumUtil.isValidEthereumPrivateKey;
+import static java.lang.System.out;
 import static java.util.Objects.isNull;
+import static java.util.concurrent.ForkJoinPool.commonPool;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.springframework.util.Assert.notNull;
+import static org.springframework.boot.Banner.Mode.OFF;
 
 
 @SpringBootApplication
@@ -20,6 +24,9 @@ public class BalanceScannerApplication implements CommandLineRunner {
 	private static final Logger LOGGER = getLogger(BalanceScannerApplication.class);
 
 
+	@Value("${scanner.parallel.batch-size}")
+	private long batchSize;
+
 	@Inject
 	private SequentialBalanceScannerService sequentialBalanceScannerService;
 
@@ -27,7 +34,7 @@ public class BalanceScannerApplication implements CommandLineRunner {
 	public static void main(final String[] args) {
 
 		new SpringApplicationBuilder(BalanceScannerApplication.class)
-				.bannerMode(Banner.Mode.OFF)
+				.bannerMode(OFF)
 				.logStartupInfo(false)
 				.run(args);
 
@@ -37,7 +44,7 @@ public class BalanceScannerApplication implements CommandLineRunner {
 	@Override
 	public void run(final String... args) throws Exception {
 
-		if (args.length == 3 && args[0].equals("--scan-balance") && !isNull(args[1]) && !isNull(args[2])) {
+		if (args.length == 3 && args[0].endsWith("-scan") && !isNull(args[1]) && !isNull(args[2])) {
 
 			final String startPrivateKey = args[1];
 
@@ -76,23 +83,46 @@ public class BalanceScannerApplication implements CommandLineRunner {
 			}
 
 
-			LOGGER.debug("Scanning balances within the range [" + startPrivateKey + "] -> [" + endPrivateKey + "] ...");
+			switch (args[0]) {
 
-			sequentialBalanceScannerService.scan(start, end);
+				case "--sequential-scan":
+
+					LOGGER.debug("Scanning balances within the range [" + startPrivateKey + "] -> [" + endPrivateKey + "] ...");
 
 
-			return;
+					sequentialBalanceScannerService.scan(start, end);
+
+
+					return;
+
+				case "--parallel-scan":
+
+					commonPool().invoke(new RangeScanAction(sequentialBalanceScannerService, batchSize, start, end));
+
+
+					return;
+
+				default:
+
+					out.println("\nThe scan command [" + args[0] + "] was not recognised.");
+
+			}
 		}
 
 
-		System.out.println("\nUsage: java -jar target/ethereum-scanner-0.0.1-SNAPSHOT.jar --scan-balance <start-pk> <end-pk>\n");
+		printUsage();
 	}
 
 
-	private static boolean isValidEthereumPrivateKey(final String privateKey) {
+	private void printUsage() {
 
-		notNull(privateKey, "The ethereum private key cannot be null.");
+		out.println("\nUsage: java -jar target/ethereum-scanner-0.0.1-SNAPSHOT.jar [scan-command] <start-pk> <end-pk>\n");
+		out.println("\tAvailable scan commands: ");
+		out.println("\t\t--sequential-scan:\tScans the addresses in range one by one.");
+		out.println("\t\t--parallel-scan:\tScans the addresses in parallel.\n");
+		out.println("\tValid range: ");
+		out.println("\t\tstart-pk: 0x0000000000000000000000000000000000000000000000000000000000000001");
+		out.println("\t\tend-pk:   0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140\n");
 
-		return privateKey.matches("^0x[0-9a-fA-F]{64}$");
 	}
 }
