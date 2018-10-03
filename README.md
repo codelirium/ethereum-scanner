@@ -1,2 +1,2 @@
 # ethereum-scanner
-Scan the entire ethereum blockchain for non-zero account balances.
+Scan the entire ethereum blockchain for non-zero account balances and contracts.
