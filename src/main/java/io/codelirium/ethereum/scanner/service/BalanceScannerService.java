@@ -1,16 +1,21 @@
 package io.codelirium.ethereum.scanner.service;
 
+import org.slf4j.Logger;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.EthGetCode;
 import java.io.IOException;
 import java.math.BigInteger;
 
+import static java.math.BigInteger.ZERO;
+import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.util.Assert.notNull;
 import static org.web3j.protocol.core.DefaultBlockParameterName.LATEST;
 
 
 public abstract class BalanceScannerService {
+
+	private static final Logger LOGGER = getLogger(BalanceScannerService.class);
 
 
 	public abstract void scan(final String startPrivateKey, final String endPrivateKey);
@@ -31,15 +36,19 @@ public abstract class BalanceScannerService {
 
 		} catch (final IOException e) {
 
-			return getBalance(web3, address);
+			LOGGER.error("Error for getBalance(" + address + "): ", e);
 
+
+			return ZERO;
 		}
 
 
 		if (ethGetBalance.hasError()) {
 
-			return getBalance(web3, address);
+			LOGGER.error("Error for getBalance(" + address + "): " + ethGetBalance.getError().getMessage());
 
+
+			return ZERO;
 		}
 
 
@@ -62,14 +71,20 @@ public abstract class BalanceScannerService {
 
 		} catch (final IOException e) {
 
-			return isContract(web3, address);
+			LOGGER.error("Error for isContract(" + address + "): ", e);
+
+
+			return false;
 
 		}
 
 
 		if (ethGetCode.hasError()) {
 
-			return isContract(web3, address);
+			LOGGER.error("Error for isContract(" + address + "): " + ethGetCode.getError().getMessage());
+
+
+			return false;
 
 		}
 
