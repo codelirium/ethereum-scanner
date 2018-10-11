@@ -1,10 +1,11 @@
 package io.codelirium.ethereum.scanner.service;
 
+import io.codelirium.ethereum.scanner.client.ClientPool;
 import org.slf4j.Logger;
-import org.web3j.protocol.Web3j;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.EthGetCode;
-import java.io.IOException;
 import java.math.BigInteger;
 
 import static java.math.BigInteger.ZERO;
@@ -21,9 +22,10 @@ public abstract class BalanceScannerService {
 	public abstract void scan(final String startPrivateKey, final String endPrivateKey);
 
 
-	BigInteger getBalance(final Web3j web3, final String address) {
+	@Retryable(value = { RuntimeException.class }, maxAttempts = 500, backoff = @Backoff(delay = 2000))
+	BigInteger getBalance(final ClientPool pool, final String address) {
 
-		notNull(web3, "The ethereum client cannot be null.");
+		notNull(pool, "The pool cannot be null.");
 		notNull(address, "The address cannot be null.");
 
 
@@ -32,14 +34,12 @@ public abstract class BalanceScannerService {
 
 		try {
 
-			ethGetBalance = web3.ethGetBalance(address, LATEST).send();
+			ethGetBalance = pool.getClient().ethGetBalance(address, LATEST).send();
 
-		} catch (final IOException e) {
+		} catch (final Exception e) {
 
-			LOGGER.error("Error for getBalance(" + address + "): ", e);
+			throw new RuntimeException("Error for getBalance(" + address + "): " + e.getMessage());
 
-
-			return ZERO;
 		}
 
 
@@ -56,9 +56,10 @@ public abstract class BalanceScannerService {
 	}
 
 
-	boolean isContract(final Web3j web3, final String address) {
+	@Retryable(value = { RuntimeException.class }, maxAttempts = 500, backoff = @Backoff(delay = 2000))
+	boolean isContract(final ClientPool pool, final String address) {
 
-		notNull(web3, "The ethereum client cannot be null.");
+		notNull(pool, "The pool cannot be null.");
 		notNull(address, "The address cannot be null.");
 
 
@@ -67,14 +68,11 @@ public abstract class BalanceScannerService {
 
 		try {
 
-			ethGetCode = web3.ethGetCode(address, LATEST).send();
+			ethGetCode = pool.getClient().ethGetCode(address, LATEST).send();
 
-		} catch (final IOException e) {
+		} catch (final Exception e) {
 
-			LOGGER.error("Error for isContract(" + address + "): ", e);
-
-
-			return false;
+			throw new RuntimeException("Error for isContract(" + address + "): " + e.getMessage());
 
 		}
 
@@ -85,7 +83,6 @@ public abstract class BalanceScannerService {
 
 
 			return false;
-
 		}
 
 

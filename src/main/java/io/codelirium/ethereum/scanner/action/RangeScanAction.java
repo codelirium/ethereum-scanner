@@ -1,20 +1,19 @@
 package io.codelirium.ethereum.scanner.action;
 
-import io.codelirium.ethereum.scanner.BalanceScannerApplication;
 import io.codelirium.ethereum.scanner.service.SequentialBalanceScannerService;
 import org.slf4j.Logger;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.RecursiveAction;
 
+import static com.google.common.collect.Lists.newArrayListWithCapacity;
 import static java.math.BigInteger.valueOf;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
 public class RangeScanAction extends RecursiveAction {
 
-	private static final Logger LOGGER = getLogger(BalanceScannerApplication.class);
+	private static final Logger LOGGER = getLogger(RangeScanAction.class);
 
 
 	private String start;
@@ -64,7 +63,7 @@ public class RangeScanAction extends RecursiveAction {
 
 	private List<RangeScanAction> createSubTasks() {
 
-		final List<RangeScanAction> subTasks = new ArrayList<>(2);
+		final List<RangeScanAction> subTasks = newArrayListWithCapacity(2);
 
 
 		final BigInteger middle = startBI.add(endBI).divide(valueOf(2L));

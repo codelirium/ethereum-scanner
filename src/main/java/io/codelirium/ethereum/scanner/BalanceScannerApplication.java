@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.retry.annotation.EnableRetry;
 import javax.inject.Inject;
 import java.math.BigInteger;
 
@@ -18,13 +19,14 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.boot.Banner.Mode.OFF;
 
 
+@EnableRetry
 @SpringBootApplication
 public class BalanceScannerApplication implements CommandLineRunner {
 
 	private static final Logger LOGGER = getLogger(BalanceScannerApplication.class);
 
 
-	@Value("${scanner.parallel.batch-size}")
+	@Value("${scanner.parallel.batch-size:10}")
 	private long batchSize;
 
 	@Inject
@@ -116,7 +118,7 @@ public class BalanceScannerApplication implements CommandLineRunner {
 
 	private void printUsage() {
 
-		out.println("\nUsage: java -jar target/ethereum-scanner-0.0.1-SNAPSHOT.jar [scan-command] <start-pk> <end-pk>\n");
+		out.println("\nUsage: java -jar target/ethereum-scanner.jar [scan-command] <start-pk> <end-pk>\n");
 		out.println("\tAvailable scan commands: ");
 		out.println("\t\t--sequential-scan:\tScans the addresses in range one by one.");
 		out.println("\t\t--parallel-scan:\tScans the addresses in parallel.\n");

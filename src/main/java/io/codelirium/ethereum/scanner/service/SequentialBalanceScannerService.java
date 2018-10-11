@@ -1,9 +1,9 @@
 package io.codelirium.ethereum.scanner.service;
 
+import io.codelirium.ethereum.scanner.client.ClientPool;
 import io.codelirium.ethereum.scanner.type.AtomicBigInteger;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
-import org.web3j.protocol.Web3j;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import java.math.BigInteger;
@@ -21,12 +21,19 @@ public class SequentialBalanceScannerService extends BalanceScannerService {
 	private static final Logger LOGGER = getLogger(SequentialBalanceScannerService.class);
 
 
-	@Inject
-	private Web3j web3;
+	private ClientPool clientPool;
 
 	private AtomicBigInteger currentPrivateKeyBI;
 
 	private AtomicBigInteger totalScanned = new AtomicBigInteger(ZERO);
+
+
+	@Inject
+	public SequentialBalanceScannerService(final ClientPool clientPool) {
+
+		this.clientPool = clientPool;
+
+	}
 
 
 	@PreDestroy
@@ -39,6 +46,7 @@ public class SequentialBalanceScannerService extends BalanceScannerService {
 	}
 
 
+	@Override
 	public void scan(final String startPrivateKey, final String endPrivateKey) {
 
 		notNull(startPrivateKey, "The start private key cannot be null.");
@@ -57,7 +65,7 @@ public class SequentialBalanceScannerService extends BalanceScannerService {
 
 			final String publicAddress = getPublicAddress("0x" + currentPrivateKeyBI.get().toString(16));
 
-			final BigInteger balance = getBalance(web3, publicAddress);
+			final BigInteger balance = getBalance(clientPool, publicAddress);
 
 
 			if (balance.compareTo(ZERO) > 0) {
@@ -67,7 +75,7 @@ public class SequentialBalanceScannerService extends BalanceScannerService {
 			}
 
 
-			if (isContract(web3, publicAddress)) {
+			if (isContract(clientPool, publicAddress)) {
 
 				LOGGER.debug("Address: " + publicAddress + " - Key: " + getLastTriedAddress() + " - Contract detected.");
 
@@ -81,7 +89,7 @@ public class SequentialBalanceScannerService extends BalanceScannerService {
 	}
 
 
-	public String getLastTriedAddress() {
+	private String getLastTriedAddress() {
 
 		return getAddressFormatted(currentPrivateKeyBI.get().toString(16), 64);
 
