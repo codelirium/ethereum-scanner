@@ -27,7 +27,7 @@ public class ClientPool {
 	}
 
 
-	public Web3j getClient() {
+	public synchronized Web3j getClient() {
 
 		return clients.getNextElement().get();
 

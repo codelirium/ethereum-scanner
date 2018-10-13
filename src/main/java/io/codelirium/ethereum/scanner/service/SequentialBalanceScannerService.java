@@ -3,6 +3,8 @@ package io.codelirium.ethereum.scanner.service;
 import io.codelirium.ethereum.scanner.client.ClientPool;
 import io.codelirium.ethereum.scanner.type.AtomicBigInteger;
 import org.slf4j.Logger;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
@@ -47,6 +49,7 @@ public class SequentialBalanceScannerService extends BalanceScannerService {
 
 
 	@Override
+	@Retryable(value = { RuntimeException.class }, maxAttempts = 500, backoff = @Backoff(delay = 2000))
 	public void scan(final String startPrivateKey, final String endPrivateKey) {
 
 		notNull(startPrivateKey, "The start private key cannot be null.");

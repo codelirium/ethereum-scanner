@@ -2,8 +2,6 @@ package io.codelirium.ethereum.scanner.service;
 
 import io.codelirium.ethereum.scanner.client.ClientPool;
 import org.slf4j.Logger;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.EthGetCode;
 import java.math.BigInteger;
@@ -22,7 +20,6 @@ public abstract class BalanceScannerService {
 	public abstract void scan(final String startPrivateKey, final String endPrivateKey);
 
 
-	@Retryable(value = { RuntimeException.class }, maxAttempts = 500, backoff = @Backoff(delay = 2000))
 	BigInteger getBalance(final ClientPool pool, final String address) {
 
 		notNull(pool, "The pool cannot be null.");
@@ -56,7 +53,6 @@ public abstract class BalanceScannerService {
 	}
 
 
-	@Retryable(value = { RuntimeException.class }, maxAttempts = 500, backoff = @Backoff(delay = 2000))
 	boolean isContract(final ClientPool pool, final String address) {
 
 		notNull(pool, "The pool cannot be null.");
