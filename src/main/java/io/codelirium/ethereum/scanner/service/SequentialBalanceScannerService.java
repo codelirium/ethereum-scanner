@@ -9,10 +9,16 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import java.math.BigInteger;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
+import static com.google.common.collect.Lists.newLinkedList;
 import static io.codelirium.ethereum.scanner.util.EthereumUtil.getAddressFormatted;
 import static io.codelirium.ethereum.scanner.util.EthereumUtil.getPublicAddress;
+import static java.lang.Runtime.getRuntime;
 import static java.math.BigInteger.ZERO;
+import static java.util.Collections.sort;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.util.Assert.notNull;
 
@@ -23,11 +29,16 @@ public class SequentialBalanceScannerService extends BalanceScannerService {
 	private static final Logger LOGGER = getLogger(SequentialBalanceScannerService.class);
 
 
+	private static final int HISTORY_TRAIL_SIZE = 2 * getRuntime().availableProcessors();
+
+
 	private ClientPool clientPool;
 
-	private AtomicBigInteger currentPrivateKeyBI;
-
 	private AtomicBigInteger totalScanned = new AtomicBigInteger(ZERO);
+
+	private List<BigInteger> lastTriedPrivateKeys = newLinkedList();
+
+	private Lock lock = new ReentrantLock();
 
 
 	@Inject
@@ -41,7 +52,10 @@ public class SequentialBalanceScannerService extends BalanceScannerService {
 	@PreDestroy
 	private void printLastKey() {
 
-		LOGGER.debug("Last key tried: " + getLastTriedAddress());
+		sort(lastTriedPrivateKeys);
+
+
+		LOGGER.debug("Last smallest key tried: " + toKey(lastTriedPrivateKeys.get(0)));
 
 		LOGGER.debug("Total number of addresses scanned: " + totalScanned.get().toString());
 
@@ -61,40 +75,59 @@ public class SequentialBalanceScannerService extends BalanceScannerService {
 		final BigInteger endPrivateKeyBI = new BigInteger(endPrivateKey, 16);
 
 
-		currentPrivateKeyBI = new AtomicBigInteger(startPrivateKeyBI);
+		final AtomicBigInteger localCurrentPrivateKeyBI = new AtomicBigInteger(startPrivateKeyBI);
 
 
-		while (currentPrivateKeyBI.get().compareTo(endPrivateKeyBI) <= 0) {
+		while (localCurrentPrivateKeyBI.get().compareTo(endPrivateKeyBI) <= 0) {
 
-			final String publicAddress = getPublicAddress("0x" + currentPrivateKeyBI.get().toString(16));
+			final String publicAddress = getPublicAddress("0x" + localCurrentPrivateKeyBI.get().toString(16));
 
 			final BigInteger balance = getBalance(clientPool, publicAddress);
 
 
 			if (balance.compareTo(ZERO) > 0) {
 
-				LOGGER.debug("Address: " + publicAddress + " - Key: " + getLastTriedAddress() + " - Balance: " + balance + " wei.");
+				LOGGER.debug("Address: " + publicAddress + " - Key: " + toKey(localCurrentPrivateKeyBI.get()) + " - Balance: " + balance + " wei.");
 
 			}
 
 
 			if (isContract(clientPool, publicAddress)) {
 
-				LOGGER.debug("Address: " + publicAddress + " - Key: " + getLastTriedAddress() + " - Contract detected.");
+				LOGGER.debug("Address: " + publicAddress + " - Key: " + toKey(localCurrentPrivateKeyBI.get()) + " - Contract detected.");
 
 			}
 
 
-			currentPrivateKeyBI.incrementAndGet();
+			try {
+
+				lock.lock();
+
+				if (lastTriedPrivateKeys.size() == HISTORY_TRAIL_SIZE) {
+
+					lastTriedPrivateKeys.remove(0);
+
+				}
+
+				lastTriedPrivateKeys.add(localCurrentPrivateKeyBI.get());
+
+			} finally {
+
+				lock.unlock();
+
+			}
+
 
 			totalScanned.incrementAndGet();
+
+			localCurrentPrivateKeyBI.incrementAndGet();
 		}
 	}
 
 
-	private String getLastTriedAddress() {
+	private String toKey(final BigInteger bigInteger) {
 
-		return getAddressFormatted(currentPrivateKeyBI.get().toString(16), 64);
+		return getAddressFormatted(bigInteger.toString(16), 64);
 
 	}
 }

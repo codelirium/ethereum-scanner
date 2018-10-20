@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.RecursiveAction;
 
 import static com.google.common.collect.Lists.newArrayListWithCapacity;
+//import static io.codelirium.ethereum.scanner.util.EthereumUtil.getAddressFormatted;
 import static java.math.BigInteger.valueOf;
 import static org.slf4j.LoggerFactory.getLogger;
 
