@@ -18,7 +18,4 @@ class NodeConfiguration {
 	@Value("${infura.client.endpoint.3}")
 	private String endpointThree;
 
-	@Value("${infura.client.endpoint.4}")
-	private String endpointFour;
-
 }

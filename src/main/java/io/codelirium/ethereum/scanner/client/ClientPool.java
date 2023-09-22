@@ -21,8 +21,7 @@ public class ClientPool {
 
 		clients = new CircularList<>(newArrayList(build(new HttpService(nodes.getEndpointOne())),
 												  build(new HttpService(nodes.getEndpointTwo())),
-												  build(new HttpService(nodes.getEndpointThree())),
-												  build(new HttpService(nodes.getEndpointFour()))));
+												  build(new HttpService(nodes.getEndpointThree()))));
 
 	}
 
